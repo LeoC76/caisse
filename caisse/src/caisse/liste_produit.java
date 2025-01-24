@@ -2,33 +2,25 @@ package caisse;
 
 import java.awt.BorderLayout;
 import java.awt.EventQueue;
+import java.util.List;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
+import javax.swing.table.DefaultTableModel;
+
 import javax.swing.JList;
+import javax.swing.JTable;
+import javax.swing.JTextField;
+import javax.swing.JButton;
 
 public class liste_produit extends JFrame {
 
 	private static final long serialVersionUID = 1L;
 	private JPanel contentPane;
-
-	/**
-	 * Launch the application.
-	 */
-	public static void main(String[] args) {
-		EventQueue.invokeLater(new Runnable() {
-			public void run() {
-				try {
-					liste_produit frame = new liste_produit();
-					frame.setVisible(true);
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-		});
-	}
-
+	private DefaultTableModel tableModel;
+	private JTable table;
+	private JTextField textField;
 	/**
 	 * Create the frame.
 	 */
@@ -40,9 +32,31 @@ public class liste_produit extends JFrame {
 
 		setContentPane(contentPane);
 		contentPane.setLayout(null);
+		tableModel = new DefaultTableModel(new String[]{"Nom", "Quantité"}, 0);
+        table = new JTable(tableModel);
+		table.setBounds(50, 61, 329, 176);
+		contentPane.add(table);
 		
-		JList list = new JList();
-		list.setBounds(86, 52, 224, 128);
-		contentPane.add(list);
+		textField = new JTextField();
+		textField.setBounds(175, 11, 86, 20);
+		contentPane.add(textField);
+		textField.setColumns(10);
+		
+		JButton btnNewButton = new JButton("New button");
+		btnNewButton.setBounds(69, 10, 89, 23);
+		contentPane.add(btnNewButton);
+		// Ajouter les produits à la table
+        remplirTable();
+		
+		
 	}
+	
+	private void remplirTable() {
+		
+        List<String> produits = Connexion.getProduits();
+        for (int i = 0  ; i < produits.size(); i+=2) {
+            tableModel.addRow(new Object[]{produits.get(i), produits.get(1)});
+        }
+    }
+	
 }
