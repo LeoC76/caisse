@@ -45,7 +45,23 @@ public class Connexion {
         }
         return produits;
     }
+    //recupere prix 
+    public static double getPrixProduit(String productName) {
+        String query = "SELECT prixPdt FROM tarif WHERE idPdt = (SELECT idPdt FROM produit WHERE nomPdt = ?)";
+        try (Connection connection = getConnection();
+             PreparedStatement statement = connection.prepareStatement(query)) {
 
+            statement.setString(1, productName);  // Passer le nom du produit
+            try (ResultSet resultSet = statement.executeQuery()) {
+                if (resultSet.next()) {
+                    return resultSet.getDouble("prixPdt");  // Retourner le prix du produit
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0.0;  // Retourner 0 si aucun prix trouvé
+    }
     /**
      * Récupère la liste des actions disponibles.
      */
