@@ -21,7 +21,7 @@ public class liste_produit extends JFrame {
     private List<Object[]> allData;
 
     // Liste pour stocker les produits du panier
-    private List<String[]> panier = new ArrayList<>();
+    private List<String[]> Panier = new ArrayList<>();
 
     public liste_produit() {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -35,8 +35,8 @@ public class liste_produit extends JFrame {
         table = new JTable(tableModel);
 
         // Ajout des renderers et éditeurs après s'assurer que le modèle est défini
-        table.getColumnModel().getColumn(2).setCellRenderer(new ButtonRenderer());
-        table.getColumnModel().getColumn(2).setCellEditor(new ButtonEditor(table, this)); // Passage de la référence à `liste_produit`
+        table.getColumnModel().getColumn(3).setCellRenderer(new ButtonRenderer());
+        table.getColumnModel().getColumn(3).setCellEditor(new ButtonEditor(table, this)); // Passage de la référence à `liste_produit`
         table.setBounds(50, 61, 329, 176);
         contentPane.add(table);
 
@@ -105,6 +105,20 @@ public class liste_produit extends JFrame {
         }
     }
 
+    private void afficherTotalPanier() {
+        double total = 0.0;
+
+        // Parcourir le panier pour calculer le total
+        for (String[] item : Panier) {
+            String productName = item[0];
+            int quantity = Integer.parseInt(item[1]);
+            double price = Connexion.getPrixProduit(productName);  // Récupérer le prix du produit
+            total += price * quantity;  // Ajouter au total
+        }
+
+        // Afficher le total
+        JOptionPane.showMessageDialog(this, "Total du panier : " + total + " €", "Total", JOptionPane.INFORMATION_MESSAGE);
+    }
     
     public void showQuantityDialog(String productName) {
         JDialog dialog = new JDialog(this, "Ajouter au panier", true);
@@ -133,42 +147,31 @@ public class liste_produit extends JFrame {
     
     // Méthode pour afficher le panier
     private void afficherPanier() {
-        if (panier.isEmpty()) {
+        if (Panier.isEmpty()) {
             JOptionPane.showMessageDialog(this, "Votre panier est vide", "Panier", JOptionPane.INFORMATION_MESSAGE);
             return;
         }
 
-        // Créer une fenêtre pour afficher le panier
-        JDialog panierDialog = new JDialog(this, "Panier", true);
-        panierDialog.getContentPane().setLayout(new BorderLayout());
-        panierDialog.setSize(300, 200);
-
-        String[] columns = {"Produit", "Quantité"};
-        DefaultTableModel panierTableModel = new DefaultTableModel(columns, 0);
-        JTable panierTable = new JTable(panierTableModel);
-
-        // Ajouter les produits du panier à la table
-        for (String[] item : panier) {
-            panierTableModel.addRow(item);
-        }
-
-        JScrollPane scrollPane = new JScrollPane(panierTable);
-        panierDialog.getContentPane().add(scrollPane, BorderLayout.CENTER);
-
-        panierDialog.setVisible(true);
+     // Ouvrir la fenêtre Panier
+        panier panierFrame = new panier(Panier);
+        panierFrame.afficher();
     }
 
-    // Méthode pour ajouter un produit au panier
+ // Méthode pour ajouter un produit au panier
     public void ajouterAuPanier(String productName, int quantity) {
+        // Récupérer le prix du produit depuis la base de données
+        double prix = Connexion.getPrixProduit(productName);
+
         // Vérifier si le produit existe déjà dans le panier
-        for (String[] item : panier) {
+        for (String[] item : Panier) {
             if (item[0].equals(productName)) {
                 // Si le produit existe déjà, ajouter la quantité
                 item[1] = String.valueOf(Integer.parseInt(item[1]) + quantity);
                 return;
             }
         }
-        // Si le produit n'existe pas encore, l'ajouter au panier
-        panier.add(new String[]{productName, String.valueOf(quantity)});
+
+        // Si le produit n'existe pas encore, l'ajouter au panier avec le prix
+        Panier.add(new String[]{productName, String.valueOf(quantity), String.valueOf(prix)});
     }
 }

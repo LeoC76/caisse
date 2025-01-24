@@ -47,7 +47,7 @@ public class Connexion {
     }
     //recupere prix 
     public static double getPrixProduit(String productName) {
-        String query = "SELECT prixPdt FROM tarif WHERE idPdt = (SELECT idPdt FROM produit WHERE nomPdt = ?)";
+        String query = "SELECT prixPdt FROM tarif WHERE idPdt = (SELECT id FROM produit WHERE libelleProduit = ?)";
         try (Connection connection = getConnection();
              PreparedStatement statement = connection.prepareStatement(query)) {
 
