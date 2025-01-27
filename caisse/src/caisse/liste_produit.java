@@ -25,23 +25,18 @@ public class liste_produit extends JFrame {
 
     public liste_produit() {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setBounds(100, 100, 450, 300);
+        setBounds(100, 100, 1099, 493);
         contentPane = new JPanel();
+        contentPane.setBackground(new Color(0, 128, 255));
         contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
         setContentPane(contentPane);
         contentPane.setLayout(null);
         
-        tableModel = new DefaultTableModel(new String[]{"Nom", "Quantité","Tarif", "Ajouter"}, 0);
-        table = new JTable(tableModel);
-
-        // Ajout des renderers et éditeurs après s'assurer que le modèle est défini
-        table.getColumnModel().getColumn(3).setCellRenderer(new ButtonRenderer());
-        table.getColumnModel().getColumn(3).setCellEditor(new ButtonEditor(table, this)); // Passage de la référence à `liste_produit`
-        table.setBounds(50, 61, 329, 176);
-        contentPane.add(table);
+        tableModel = new DefaultTableModel(new String[]{"Nom", "Quantité", "Tarif", "Ajouter"}, 0);
 
         comboModel = new DefaultComboBoxModel<>();
         comboBox = new JComboBox(comboModel);
+        comboBox.setBackground(new Color(255, 128, 64));
         comboBox.setBounds(50, 10, 329, 22);
         contentPane.add(comboBox);
         
@@ -50,15 +45,25 @@ public class liste_produit extends JFrame {
         
         // Ajouter les produits à la table
         filtrerParAction();
-        
         // Listener pour la comboBox
         comboBox.addActionListener(e -> filtrerParAction());
 
         // Bouton "Voir Panier"
         JButton btnVoirPanier = new JButton("Voir Panier");
+        btnVoirPanier.setBackground(new Color(255, 255, 255));
         btnVoirPanier.setBounds(50, 30, 110, 20);
         btnVoirPanier.addActionListener(e -> afficherPanier());
         contentPane.add(btnVoirPanier);
+        
+        JScrollPane scrollPane = new JScrollPane();
+        scrollPane.setBounds(50, 75, 965, 349);
+        contentPane.add(scrollPane);
+        table = new JTable(tableModel);
+        scrollPane.setViewportView(table);
+        
+                // Ajout des renderers et éditeurs après s'assurer que le modèle est défini
+                table.getColumnModel().getColumn(3).setCellRenderer(new ButtonRenderer());
+                table.getColumnModel().getColumn(3).setCellEditor(new ButtonEditor(table, this));
     }
 
     private void remplirComboBox() {
@@ -88,16 +93,19 @@ public class liste_produit extends JFrame {
                 
                 for (int i = 0; i < produits.size(); i += 2) {
                     String productName = produits.get(i);
+                    String productQT = produits.get(i+1);
                     String productPrice = String.valueOf(Connexion.getPrixProduit(productName)); // Récupérer le prix du produit
-                    tableModel.addRow(new Object[]{productName, "1", productPrice, "Ajouter"});  // Afficher le prix
+                    tableModel.addRow(new Object[]{productName, productQT, productPrice, "Ajouter"});  // Afficher le prix
                 }
             } else {
+            	System.out.println("Action sélectionnée : " + selectedAction);
                 // Récupérer les produits filtrés par l'action sélectionnée
                 List<String[]> produitsFiltres = Connexion.getProduitsParAction(selectedAction);
                 for (String[] produit : produitsFiltres) {
                     String productName = produit[0];
+                    String productQT = produit[1];
                     String productPrice = String.valueOf(Connexion.getPrixProduit(productName)); // Récupérer le prix du produit
-                    tableModel.addRow(new Object[]{productName, "1", productPrice, "Ajouter"});  // Afficher le prix
+                    tableModel.addRow(new Object[]{productName, productQT, productPrice, "Ajouter"});  // Afficher le prix
                 }
             }
         } catch (Exception e) {
@@ -105,20 +113,7 @@ public class liste_produit extends JFrame {
         }
     }
 
-    private void afficherTotalPanier() {
-        double total = 0.0;
-
-        // Parcourir le panier pour calculer le total
-        for (String[] item : Panier) {
-            String productName = item[0];
-            int quantity = Integer.parseInt(item[1]);
-            double price = Connexion.getPrixProduit(productName);  // Récupérer le prix du produit
-            total += price * quantity;  // Ajouter au total
-        }
-
-        // Afficher le total
-        JOptionPane.showMessageDialog(this, "Total du panier : " + total + " €", "Total", JOptionPane.INFORMATION_MESSAGE);
-    }
+    
     
     public void showQuantityDialog(String productName) {
         JDialog dialog = new JDialog(this, "Ajouter au panier", true);

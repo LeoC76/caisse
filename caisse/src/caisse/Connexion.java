@@ -14,12 +14,15 @@ public class Connexion {
     static String password = "";
 
     public static void main(String[] args) {
-        // Test de la récupération des produits
-        List<String> produits = getProduits();
-        for (String produit : produits) {
-            System.out.println("Produit: " + produit);
+        
+		// Test de la récupération des produits
+        List<String[]> produits = getProduitsParAction("noel");
+        System.out.println("Produit: " + produits);
+        for (String[] produit : produits) {
+        	System.out.println("Produit: " + produit[0] + ", Quantité: " + produit[1]);
         }
-    }
+   }
+    
 
     public static Connection getConnection() throws SQLException {
         return DriverManager.getConnection(url, user, password);
@@ -82,28 +85,6 @@ public class Connexion {
         return actions;
     }
 
-
-    /**
-     * Récupère les détails des actions (produits et quantités associés).
-     */
-    public static List<String> getDetailAction() {
-        List<String> detailActions = new ArrayList<>();
-        String query = "SELECT idAction, idPdt FROM detailaction";
-
-        try (Connection connection = getConnection();
-             PreparedStatement statement = connection.prepareStatement(query);
-             ResultSet resultSet = statement.executeQuery()) {
-
-            while (resultSet.next()) {
-                detailActions.add(resultSet.getString("idAction"));
-                detailActions.add(resultSet.getString("idPdt"));
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return detailActions;
-    }
-
     /**
      * Récupère les produits filtrés par idAction.
      *
@@ -113,9 +94,10 @@ public class Connexion {
     public static List<String[]> getProduitsParAction(String idAction) {
         List<String[]> produits = new ArrayList<>();
         String query = "SELECT produit.libelleProduit, produit.quantitePrdt " +
-                       "FROM produit " +
-                       "JOIN detailaction da ON produit.id = da.idPdt " +
-                       "WHERE da.idAction = ?";
+                "FROM produit " +
+                "JOIN detailaction ON produit.id = detailaction.idPdt " +
+                "JOIN action ON action.id = detailaction.idAction " +
+                "WHERE action.libelleVente = ?";
 
         try (Connection connection = getConnection();
              PreparedStatement statement = connection.prepareStatement(query)) {
@@ -133,4 +115,5 @@ public class Connexion {
         }
         return produits;
     }
+    
 }
