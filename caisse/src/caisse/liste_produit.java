@@ -1,6 +1,8 @@
 package caisse;
 
 import java.awt.*;
+import java.io.File;
+
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 
@@ -17,11 +19,13 @@ public class liste_produit extends JFrame {
     public JTable table;
     private DefaultComboBoxModel<String> comboModel;
     private JComboBox comboBox;
+    
     // Données table
     private List<Object[]> allData;
 
     // Liste pour stocker les produits du panier
     private List<String[]> Panier = new ArrayList<>();
+    private JLabel lblNewLabel;
 
     public liste_produit() {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -37,7 +41,7 @@ public class liste_produit extends JFrame {
         comboModel = new DefaultComboBoxModel<>();
         comboBox = new JComboBox(comboModel);
         comboBox.setBackground(new Color(255, 128, 64));
-        comboBox.setBounds(50, 10, 329, 22);
+        comboBox.setBounds(50, 52, 329, 22);
         contentPane.add(comboBox);
         
         // Remplir comboBox
@@ -47,11 +51,17 @@ public class liste_produit extends JFrame {
         filtrerParAction();
         // Listener pour la comboBox
         comboBox.addActionListener(e -> filtrerParAction());
+        File imageCheck = new File("C:\\\\Users\\\\lecan\\\\OneDrive\\\\Pictures\\\\panier.png\\");
 
+        if(imageCheck.exists()) 
+            System.out.println("Image file found!");
+        else 
+            System.out.println("Image file not found!");
         // Bouton "Voir Panier"
-        JButton btnVoirPanier = new JButton("Voir Panier");
+        ImageIcon icon = new ImageIcon("C:\\\\\\\\Users\\\\\\\\lecan\\\\\\\\OneDrive\\\\\\\\Pictures\\\\\\\\panier.png\\\\");
+        JButton btnVoirPanier = new JButton("Voir panier", icon);
         btnVoirPanier.setBackground(new Color(255, 255, 255));
-        btnVoirPanier.setBounds(50, 30, 110, 20);
+        btnVoirPanier.setBounds(854, 10, 161, 64);
         btnVoirPanier.addActionListener(e -> afficherPanier());
         contentPane.add(btnVoirPanier);
         
@@ -64,6 +74,10 @@ public class liste_produit extends JFrame {
                 // Ajout des renderers et éditeurs après s'assurer que le modèle est défini
                 table.getColumnModel().getColumn(3).setCellRenderer(new ButtonRenderer());
                 table.getColumnModel().getColumn(3).setCellEditor(new ButtonEditor(table, this));
+                
+                lblNewLabel = new JLabel("Filtrer par action :");
+                lblNewLabel.setBounds(54, 27, 98, 14);
+                contentPane.add(lblNewLabel);
     }
 
     private void remplirComboBox() {

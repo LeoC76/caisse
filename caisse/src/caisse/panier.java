@@ -1,67 +1,141 @@
 package caisse;
 
 import javax.swing.*;
+import javax.swing.event.TableModelEvent;
+import javax.swing.event.TableModelListener;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
+import java.util.Iterator;
 import java.util.List;
 
 public class panier extends JFrame {
     private List<String[]> panier;  // Liste de produits du panier
-    DefaultTableModel tableModel;
-    JLabel totalLabel;
-    private JTable table;
+    private DefaultTableModel tableModel;
+    private JLabel totalLabel;
+
     // Constructeur qui prend une liste de produits
     public panier(List<String[]> panier) {
-    	getContentPane().setLayout(null);
-    	
-    	JPanel panel = new JPanel();
-    	panel.setBounds(0, 0, 434, 36);
-    	getContentPane().add(panel);
+        this.panier = panier; // Initialisation de la liste de produits
+        setTitle("Panier");
+        setSize(600, 400);
+        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+
+        // Initialisation de la table
+        String[] columns = {"Produit", "Quantité", "Prix"};
+        tableModel = new DefaultTableModel(columns, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                // Seule la colonne "Quantité" (index 1) est éditable
+                return column == 1;
+            }
+        };
+
+        JTable table = new JTable(tableModel);
+
+        // Ajouter un écouteur pour détecter les modifications dans la table
+        tableModel.addTableModelListener(new TableModelListener() {
+            @Override
+            public void tableChanged(TableModelEvent e) {
+                if (e.getType() == TableModelEvent.UPDATE) {
+                    int row = e.getFirstRow();
+                    int column = e.getColumn();
+
+                    // Vérifier si c'est la colonne "Quantité" qui a été modifiée
+                    if (column == 1) {
+                        try {
+                            // Mettre à jour la quantité dans la liste `panier`
+                            String newQuantityStr = tableModel.getValueAt(row, column).toString();
+                            int newQuantity = Integer.parseInt(newQuantityStr);
+                            panier.get(row)[1] = String.valueOf(newQuantity);
+
+                            // Mettre à jour le total
+                            mettreAJourTotal();
+                        } catch (NumberFormatException ex) {
+                            // Si l'utilisateur entre une valeur invalide, réinitialiser la cellule
+                            JOptionPane.showMessageDialog(null, "Veuillez entrer une quantité valide.", "Erreur", JOptionPane.ERROR_MESSAGE);
+                            tableModel.setValueAt(panier.get(row)[1], row, column); // Restaurer la valeur précédente
+                        }
+                    }
+                }
+            }
+        });
+        getContentPane().setLayout(null);
+
+        // Ajouter un panneau pour la table
+        JScrollPane scrollPane = new JScrollPane(table);
+        scrollPane.setBounds(0, 0, 584, 269);
+        getContentPane().add(scrollPane);
+        JPanel totalPanel = new JPanel();
+        totalPanel.setBounds(0, 402, 584, 17);
+        totalPanel.setLayout(null);
+        getContentPane().add(totalPanel);
+        
+                // Ajouter un panneau pour le total
+                totalLabel = new JLabel("Total : 0.00 €", JLabel.RIGHT);
+                totalLabel.setBounds(440, 298, 144, 63);
+                getContentPane().add(totalLabel);
+                totalLabel.setFont(new Font("Arial", Font.BOLD, 14));
+                
+                JLabel lblNewLabel = new JLabel("Si quantité = 0 -> supprimer du panier");
+                lblNewLabel.setBounds(10, 280, 240, 14);
+                getContentPane().add(lblNewLabel);
+
+        // Remplir la table et calculer le total
+        remplirTable();
     }
 
-    // Méthode pour afficher le panier
-    public void afficher() {
-        String[] columns = {"Produit", "Quantité", "Prix"};
-        tableModel = new DefaultTableModel(columns, 0);
-        JTable table = new JTable(tableModel);
+    // Méthode pour remplir la table et calculer le total
+    private void remplirTable() {
+        // Vider le modèle de table
+        tableModel.setRowCount(0);
 
         // Ajouter les produits du panier à la table
         for (String[] item : panier) {
-            tableModel.addRow(item);  // Ajoute chaque ligne du panier à la table
+            tableModel.addRow(item); // Ajouter chaque produit à la table
         }
 
-        // Calculer le total
+        // Mettre à jour le total
+        mettreAJourTotal();
+    }
+	
+    private void mettreAJourTotal() {
         double total = 0;
-        for (String[] item : panier) {
+
+        // Utiliser un itérateur pour éviter ConcurrentModificationException
+        Iterator<String[]> iterator = panier.iterator();
+        int row = 0;
+
+        while (iterator.hasNext()) {
+            String[] item = iterator.next();
             int quantity = Integer.parseInt(item[1]);
             double price = Double.parseDouble(item[2]);
-            total += quantity * price;
+
+            if (quantity == 0) {
+                // Supprimer l'élément si la quantité est 0
+                iterator.remove();
+                tableModel.removeRow(row);
+            } else {
+                total += quantity * price;
+                row++;
+            }
         }
 
-        // Ajouter un label pour afficher le total
-        totalLabel = new JLabel("Total : " + String.format("%.2f", total) + " €", JLabel.RIGHT);
-        totalLabel.setFont(new Font("Arial", Font.BOLD, 14));
-        JPanel totalPanel = new JPanel();
-        totalPanel.setLayout(new BorderLayout());
-        totalPanel.add(totalLabel, BorderLayout.EAST);  // Aligner à droite
-        getContentPane().add(totalPanel, BorderLayout.SOUTH);
+        totalLabel.setText("Total : " + String.format("%.2f", total) + " €");
+    }
 
-        setVisible(true);  // Afficher la fenêtre
-    }
-    public double calculerTotal() {
-    	// Calculer le total
-        double total = 0;
-        for (String[] item : panier) {
-            int quantity = Integer.parseInt(item[1]);
-            double price = Double.parseDouble(item[2]);
-            total += quantity * price;
-            
-        }
-        return total;
-    }
+
+
+    // Méthode pour supprimer un produit du panier
     public void supprimerProduit(int row) {
-        panier.remove(row); // Supprime de la liste
-        tableModel.removeRow(row); // Supprime de la table
-        totalLabel.setText("Total : " + calculerTotal() + " €"); // Met à jour le total
+        if (row >= 0 && row < panier.size()) {
+            panier.remove(row); // Supprimer de la liste
+            tableModel.removeRow(row); // Supprimer de la table
+            remplirTable(); // Recalculer le total
+        }
+    }
+
+    // Méthode pour afficher la fenêtre
+    public void afficher() {
+        setVisible(true);
     }
 }
