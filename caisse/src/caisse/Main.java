@@ -8,7 +8,7 @@ public class Main {
 
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
-		//List list = new Connexion().getProduits();
+		//List list = new Connexion().getType();
 		//System.out.println(list);
 		liste_produit frame = new liste_produit();
         frame.setVisible(true);

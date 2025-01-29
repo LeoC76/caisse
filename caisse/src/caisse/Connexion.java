@@ -84,6 +84,22 @@ public class Connexion {
         }
         return actions;
     }
+    public static List<String> getType() {
+        List<String> types = new ArrayList<>();
+        String query = "SELECT libelleTypePdt FROM typeproduit"; // On récupère les libellés des actions
+
+        try (Connection connection = getConnection();
+             PreparedStatement statement = connection.prepareStatement(query);
+             ResultSet resultSet = statement.executeQuery()) {
+
+            while (resultSet.next()) {
+                types.add(resultSet.getString("libelleTypePdt")); // Ajout des libellés à la liste
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return types;
+    }
 
     /**
      * Récupère les produits filtrés par idAction.
@@ -115,5 +131,85 @@ public class Connexion {
         }
         return produits;
     }
-    
+   
+   /**
+     * Ajoute un produit dans la base de données.
+     */
+    public static void ajouterProduit(String nomProduit, Double quantite, String type) {
+        String query = "INSERT INTO produit (libelleProduit, quantitePrdt, idTypePdt) VALUES (?, ?, ?)";
+
+        try (Connection connection = getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+        	// Obtenir l'ID du type en fonction du libellé
+            int idType = getIdType(type);
+
+            if (idType == -1) {
+                System.err.println("Type invalide : " + type);
+                return;
+            }
+
+            preparedStatement.setString(1, nomProduit);
+            preparedStatement.setDouble(2, quantite);
+            preparedStatement.setLong(3, idType);
+            preparedStatement.executeUpdate();
+
+            System.out.println("Produit ajouté avec succès!");
+        } catch (SQLException e) {
+            System.err.println("Erreur lors de l'ajout du produit: " + e.getMessage());
+        }
+    }
+    public static Integer getIdType(String libelleType) {
+        String query = "SELECT id FROM typeproduit WHERE libelleTypePdt = ?";
+        try (Connection connection = getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+
+            preparedStatement.setString(1, libelleType);
+            try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                if (resultSet.next()) {
+                    return resultSet.getInt("id");
+                } else {
+                    System.err.println("Type invalide : " + libelleType);
+                    return null; // Type non trouvé
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("Erreur lors de la récupération de l'ID du type : " + e.getMessage());
+            return null; // Erreur de connexion ou autre
+        }
+    }
+
+    /**
+     * Ajoute une catégorie dans la base de données.
+     */
+    public static void ajouterCategorie(String nomCategorie) {
+        String query = "INSERT INTO typeproduit (libelleTypePdt) VALUES (?)";
+
+        try (Connection connection = getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+
+            preparedStatement.setString(1, nomCategorie);
+            preparedStatement.executeUpdate();
+            System.out.println("Catégorie ajoutée avec succès!");
+        } catch (SQLException e) {
+            System.err.println("Erreur lors de l'ajout de la catégorie: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Supprime une catégorie dans la base de données.
+     */
+    public static void supprimerCategorie(String categorie) {
+        String query = "DELETE FROM typeproduit WHERE libelleTypePdt = ?";
+
+        try (Connection connection = getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+
+            preparedStatement.setString(1, categorie);
+            preparedStatement.executeUpdate();
+            System.out.println("Catégorie supprimée avec succès!");
+        } catch (SQLException e) {
+            System.err.println("Erreur lors de la suppression de la catégorie: " + e.getMessage());
+        }
+    }
 }
+

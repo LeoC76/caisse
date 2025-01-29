@@ -10,6 +10,8 @@ import java.util.*;
 import javax.swing.table.*;
 import java.util.List;
 import java.util.ArrayList;
+import java.awt.event.ActionListener;
+import java.awt.event.ActionEvent;
 
 public class liste_produit extends JFrame {
 
@@ -28,20 +30,24 @@ public class liste_produit extends JFrame {
     private JLabel lblNewLabel;
 
     public liste_produit() {
+    	setTitle("AppliCaisse");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setBounds(100, 100, 1099, 493);
+        // Récupérer la taille de l'écran
+        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+        setBounds(0, 0, screenSize.width, screenSize.height);
+        
         contentPane = new JPanel();
-        contentPane.setBackground(new Color(0, 128, 255));
+        contentPane.setBackground(new Color(192, 192, 192));
         contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
         setContentPane(contentPane);
-        contentPane.setLayout(null);
         
         tableModel = new DefaultTableModel(new String[]{"Nom", "Quantité", "Tarif", "Ajouter"}, 0);
 
         comboModel = new DefaultComboBoxModel<>();
+        contentPane.setLayout(null);
         comboBox = new JComboBox(comboModel);
-        comboBox.setBackground(new Color(255, 128, 64));
         comboBox.setBounds(50, 52, 329, 22);
+        comboBox.setBackground(new Color(128, 255, 255));
         contentPane.add(comboBox);
         
         // Remplir comboBox
@@ -51,22 +57,18 @@ public class liste_produit extends JFrame {
         filtrerParAction();
         // Listener pour la comboBox
         comboBox.addActionListener(e -> filtrerParAction());
-        File imageCheck = new File("C:\\\\Users\\\\lecan\\\\OneDrive\\\\Pictures\\\\panier.png\\");
-
-        if(imageCheck.exists()) 
-            System.out.println("Image file found!");
-        else 
-            System.out.println("Image file not found!");
+        
         // Bouton "Voir Panier"
         ImageIcon icon = new ImageIcon("C:\\\\\\\\Users\\\\\\\\lecan\\\\\\\\OneDrive\\\\\\\\Pictures\\\\\\\\panier.png\\\\");
-        JButton btnVoirPanier = new JButton("Voir panier", icon);
-        btnVoirPanier.setBackground(new Color(255, 255, 255));
+        JButton btnVoirPanier = new JButton("Voir panier", new ImageIcon(liste_produit.class.getResource("/caisse/panier.png")));
         btnVoirPanier.setBounds(854, 10, 161, 64);
+        btnVoirPanier.setFont(new Font("Tahoma", Font.BOLD, 11));
+        btnVoirPanier.setBackground(new Color(0, 128, 255));
         btnVoirPanier.addActionListener(e -> afficherPanier());
         contentPane.add(btnVoirPanier);
         
         JScrollPane scrollPane = new JScrollPane();
-        scrollPane.setBounds(50, 75, 965, 349);
+        scrollPane.setBounds(50, 81, screenSize.width-100, screenSize.height-400);
         contentPane.add(scrollPane);
         table = new JTable(tableModel);
         scrollPane.setViewportView(table);
@@ -76,10 +78,22 @@ public class liste_produit extends JFrame {
                 table.getColumnModel().getColumn(3).setCellEditor(new ButtonEditor(table, this));
                 
                 lblNewLabel = new JLabel("Filtrer par action :");
-                lblNewLabel.setBounds(54, 27, 98, 14);
+                lblNewLabel.setBounds(54, 27, 134, 14);
                 contentPane.add(lblNewLabel);
+                
+                JButton btnGestion = new JButton("Gestion", null);
+                btnGestion.setBounds(683, 10, 161, 64);
+                btnGestion.setFont(new Font("Tahoma", Font.BOLD, 11));
+                btnGestion.addActionListener(new ActionListener() {
+                	public void actionPerformed(ActionEvent e) {
+                		Accueil test = new Accueil();
+                		test.afficher();
+                	}
+                });
+                btnGestion.setBackground(new Color(255, 128, 64));
+                contentPane.add(btnGestion);
     }
-
+    
     private void remplirComboBox() {
         try {
             List<String> actions = Connexion.getActions();

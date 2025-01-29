@@ -7,6 +7,8 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.util.Iterator;
 import java.util.List;
+import java.awt.event.ActionListener;
+import java.awt.event.ActionEvent;
 
 public class panier extends JFrame {
     private List<String[]> panier;  // Liste de produits du panier
@@ -79,6 +81,14 @@ public class panier extends JFrame {
                 JLabel lblNewLabel = new JLabel("Si quantité = 0 -> supprimer du panier");
                 lblNewLabel.setBounds(10, 280, 240, 14);
                 getContentPane().add(lblNewLabel);
+                
+                JButton btnNewButton = new JButton("New button");
+                btnNewButton.addActionListener(new ActionListener() {
+                	public void actionPerformed(ActionEvent e) {
+                	}
+                });
+                btnNewButton.setBounds(220, 324, 100, 21);
+                getContentPane().add(btnNewButton);
 
         // Remplir la table et calculer le total
         remplirTable();
