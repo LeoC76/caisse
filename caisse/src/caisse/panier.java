@@ -14,6 +14,7 @@ public class panier extends JFrame {
     private List<String[]> panier;  // Liste de produits du panier
     private DefaultTableModel tableModel;
     private JLabel totalLabel;
+    private JComboBox comboBox;
 
     // Constructeur qui prend une liste de produits
     public panier(List<String[]> panier) {
@@ -82,16 +83,21 @@ public class panier extends JFrame {
                 lblNewLabel.setBounds(10, 280, 240, 14);
                 getContentPane().add(lblNewLabel);
                 
-                JButton btnNewButton = new JButton("New button");
+                JButton btnNewButton = new JButton("Valider");
                 btnNewButton.addActionListener(new ActionListener() {
                 	public void actionPerformed(ActionEvent e) {
                 	}
                 });
                 btnNewButton.setBounds(220, 324, 100, 21);
                 getContentPane().add(btnNewButton);
+                
+                comboBox = new JComboBox();
+                comboBox.setBounds(10, 320, 80, 21);
+                getContentPane().add(comboBox);
 
         // Remplir la table et calculer le total
         remplirTable();
+        remplirComboBox();
     }
 
     // Méthode pour remplir la table et calculer le total
@@ -148,4 +154,18 @@ public class panier extends JFrame {
     public void afficher() {
         setVisible(true);
     }
+
+	private void remplirComboBox() {
+	    try {
+	        List<String> lpaiement = Connexion.getTypePaiement();
+	        DefaultComboBoxModel<String> model = new DefaultComboBoxModel<>();
+	        model.addElement(""); // Option vide
+	        for (String action : lpaiement) {
+	            model.addElement(action); // Ajout des libellés à la comboBox
+	        }
+	        comboBox.setModel(model);
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	    }
+	}
 }

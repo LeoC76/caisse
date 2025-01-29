@@ -211,5 +211,21 @@ public class Connexion {
             System.err.println("Erreur lors de la suppression de la catégorie: " + e.getMessage());
         }
     }
+    public static List<String> getTypePaiement() {
+        List<String> lpaiement = new ArrayList<>();
+        String query = "SELECT libelleTypePaiement FROM typepaiement"; // On récupère les libellés des actions
+
+        try (Connection connection = getConnection();
+             PreparedStatement statement = connection.prepareStatement(query);
+             ResultSet resultSet = statement.executeQuery()) {
+
+            while (resultSet.next()) {
+                lpaiement.add(resultSet.getString("libelleTypePaiement")); // Ajout des libellés à la liste
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return lpaiement;
+    }
 }
 

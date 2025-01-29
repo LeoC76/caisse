@@ -59,7 +59,6 @@ public class liste_produit extends JFrame {
         comboBox.addActionListener(e -> filtrerParAction());
         
         // Bouton "Voir Panier"
-        ImageIcon icon = new ImageIcon("C:\\\\\\\\Users\\\\\\\\lecan\\\\\\\\OneDrive\\\\\\\\Pictures\\\\\\\\panier.png\\\\");
         JButton btnVoirPanier = new JButton("Voir panier", new ImageIcon(liste_produit.class.getResource("/caisse/panier.png")));
         btnVoirPanier.setBounds(854, 10, 161, 64);
         btnVoirPanier.setFont(new Font("Tahoma", Font.BOLD, 11));
