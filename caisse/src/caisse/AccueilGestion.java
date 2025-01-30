@@ -8,7 +8,7 @@ import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
 
-public class Accueil extends JFrame {
+public class AccueilGestion extends JFrame {
 
     private static final long serialVersionUID = 1L;
     private JPanel contentPane;
@@ -19,7 +19,7 @@ public class Accueil extends JFrame {
     public static void main(String[] args) {
         EventQueue.invokeLater(() -> {
             try {
-                Accueil frame = new Accueil();
+                AccueilGestion frame = new AccueilGestion();
                 frame.setVisible(true);
             } catch (Exception e) {
                 e.printStackTrace();
@@ -30,7 +30,7 @@ public class Accueil extends JFrame {
     /**
      * Construire la fenêtre principale (Accueil).
      */
-    public Accueil() {
+    public AccueilGestion() {
         setTitle("Accueil");
         setBounds(100, 100, 450, 300);
 

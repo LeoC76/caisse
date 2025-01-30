@@ -5,8 +5,10 @@ import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 
@@ -86,14 +88,19 @@ public class panier extends JFrame {
                 JButton btnNewButton = new JButton("Valider");
                 btnNewButton.addActionListener(new ActionListener() {
                 	public void actionPerformed(ActionEvent e) {
+                		validerPanier();
                 	}
                 });
                 btnNewButton.setBounds(220, 324, 100, 21);
                 getContentPane().add(btnNewButton);
                 
                 comboBox = new JComboBox();
-                comboBox.setBounds(10, 320, 80, 21);
+                comboBox.setBounds(20, 324, 100, 13);
                 getContentPane().add(comboBox);
+                
+                JLabel lblNewLabel_1 = new JLabel("Type de paiement :");
+                lblNewLabel_1.setBounds(20, 313, 100, 13);
+                getContentPane().add(lblNewLabel_1);
 
         // Remplir la table et calculer le total
         remplirTable();
@@ -167,5 +174,86 @@ public class panier extends JFrame {
 	    } catch (Exception e) {
 	        e.printStackTrace();
 	    }
+	}
+	
+	private void validerPanier() {
+	    int idTypeMvt = 1; // 1 correspond à une vente
+	    String typePaiement = (String) comboBox.getSelectedItem();
+	    int idTypePaiement = Connexion.getIdTypePaiement(typePaiement);
+
+	    if (idTypePaiement == -1) {
+	        JOptionPane.showMessageDialog(null, "Type de paiement invalide.", "Erreur", JOptionPane.ERROR_MESSAGE);
+	        return;
+	    }
+
+	    if (panier.isEmpty()) {
+	        JOptionPane.showMessageDialog(null, "Le panier est vide, aucune vente possible.", "Erreur", JOptionPane.ERROR_MESSAGE);
+	        return;
+	    }
+
+	    // 🔹 1. Récupération des stocks actuels
+	    List<String[]> lqte = Connexion.getProduits();
+	    Map<String, Double> stockProduits = new HashMap<>();
+
+	    for (String[] produit : lqte) {
+	        stockProduits.put(produit[0], Double.parseDouble(produit[1]));
+	    }
+
+	    // 🔹 2. Construire le récapitulatif du panier
+	    StringBuilder recapitulatif = new StringBuilder("🛒 Récapitulatif du panier 🛒\n\n");
+	    double total = 0;
+
+	    for (String[] produit : panier) {
+	        String nomProduit = produit[0];
+	        double quantite = Double.parseDouble(produit[1]);
+	        double prixUnitaire = Connexion.getPrixProduit(nomProduit); // Fonction à créer si besoin
+	        double prixTotal = quantite * prixUnitaire;
+
+	        recapitulatif.append(String.format("- %s : %.2f x %.2f € = %.2f €\n", nomProduit, quantite, prixUnitaire, prixTotal));
+	        total += prixTotal;
+
+	        // Vérifier si le stock est suffisant
+	        if (!stockProduits.containsKey(nomProduit) || stockProduits.get(nomProduit) < quantite) {
+	            JOptionPane.showMessageDialog(null, "Stock insuffisant pour : " + nomProduit, "Erreur", JOptionPane.ERROR_MESSAGE);
+	            return;
+	        }
+	    }
+
+	    recapitulatif.append(String.format("\n💰 Total : %.2f €\n", total));
+
+	    // 🔹 3. Demander confirmation à l'utilisateur
+	    int confirmation = JOptionPane.showConfirmDialog(null, recapitulatif.toString(), "Confirmer la vente", JOptionPane.YES_NO_OPTION);
+
+	    if (confirmation != JOptionPane.YES_OPTION) {
+	        JOptionPane.showMessageDialog(null, "Vente annulée.", "Annulation", JOptionPane.INFORMATION_MESSAGE);
+	        return;
+	    }
+
+	    // 🔹 4. Valider la vente et mettre à jour le stock
+	    for (String[] produit : panier) {
+	        String nomProduit = produit[0];
+	        double qteMvt = Double.parseDouble(produit[1]);
+	        int idPdt = Connexion.getIdProduit(nomProduit);
+
+	        if (idPdt != -1) {
+	            double nouveauStock = stockProduits.get(nomProduit) - qteMvt;
+
+	            // Enregistrer la vente
+	            Connexion.vente(idTypeMvt, qteMvt, idPdt, idTypePaiement);
+
+	            // Mettre à jour la quantité restante
+	            Connexion.updateQte(idPdt, nouveauStock);
+	        } else {
+	            System.err.println("Produit non trouvé : " + nomProduit);
+	        }
+	    }
+
+	    // 🔹 5. Confirmation finale
+	    JOptionPane.showMessageDialog(null, "✅ Vente validée avec succès !", "Succès", JOptionPane.INFORMATION_MESSAGE);
+	    
+	    // Nettoyer le panier
+	    panier.clear();
+	    tableModel.setRowCount(0);
+	    mettreAJourTotal();
 	}
 }

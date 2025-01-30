@@ -31,8 +31,8 @@ public class Connexion {
     /**
      * Récupère la liste des produits (libellé et quantité).
      */
-    public static List<String> getProduits() {
-        List<String> produits = new ArrayList<>();
+    public static List<String[]> getProduits() {
+        List<String[]> produits = new ArrayList<>();
         String query = "SELECT libelleProduit, quantitePrdt FROM produit";
 
         try (Connection connection = getConnection();
@@ -40,13 +40,47 @@ public class Connexion {
              ResultSet resultSet = statement.executeQuery()) {
 
             while (resultSet.next()) {
-                produits.add(resultSet.getString("libelleProduit"));
-                produits.add(resultSet.getString("quantitePrdt"));
+            	String produit = resultSet.getString("libelleProduit");
+            	String quantite = resultSet.getString("quantitePrdt");
+                produits.add(new String[] {produit, quantite});
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
         return produits;
+    }
+    // Récuperer L'id D'un produit
+    public static Integer getIdProduit(String nomProduit) {
+        String query = "SELECT id FROM produit WHERE libelleProduit = ?";
+        try (Connection connection = Connexion.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+
+            preparedStatement.setString(1, nomProduit);
+            try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                if (resultSet.next()) {
+                    return resultSet.getInt("id");
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("Erreur lors de la récupération de l'ID du produit : " + e.getMessage());
+        }
+        return null; // Retourne null si le produit n'est pas trouvé
+    }
+    public static int getIdTypePaiement(String libelleTypePaiement) {
+        String query = "SELECT id FROM typepaiement WHERE libelleTypePaiement = ?";
+        try (Connection connection = getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+
+            preparedStatement.setString(1, libelleTypePaiement);
+            try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                if (resultSet.next()) {
+                    return resultSet.getInt("id");
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("Erreur lors de la récupération de l'ID du type de paiement : " + e.getMessage());
+        }
+        return -1;
     }
     //recupere prix 
     public static double getPrixProduit(String productName) {
@@ -226,6 +260,75 @@ public class Connexion {
             e.printStackTrace();
         }
         return lpaiement;
+    }
+    public static void vente(int idTypeMvt, double qteMvt, int idPdt, int idTypePaiement) {
+        String query = "INSERT INTO mvtstock (idTypeMvt, qteMvt, dateHeureMvt, descriptionMvt, idPdt, idTypePaiement) " +
+                       "VALUES (?, ?, NOW(), ?, ?, ?)";
+
+        try (Connection connection = getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+
+            preparedStatement.setInt(1, idTypeMvt);
+            preparedStatement.setDouble(2, qteMvt);
+            preparedStatement.setString(3, "Vente du produit ID: " + idPdt);
+            preparedStatement.setInt(4, idPdt);
+            preparedStatement.setInt(5, idTypePaiement);
+
+            preparedStatement.executeUpdate();
+            System.out.println("Vente enregistrée avec succès !");
+        } catch (SQLException e) {
+            System.err.println("Erreur lors de l'enregistrement de la vente : " + e.getMessage());
+        }
+    }
+    public static void updateQte(int idPdt, double nouvelleQuantite) {
+        String query = "UPDATE produit SET quantitePrdt = ? WHERE id = ?";
+
+        try (Connection connection = getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+
+            preparedStatement.setDouble(1, nouvelleQuantite); // Met à jour la quantité
+            preparedStatement.setInt(2, idPdt); // Filtrer par l'ID du produit
+
+            int rowsUpdated = preparedStatement.executeUpdate();
+            if (rowsUpdated > 0) {
+                System.out.println("Quantité mise à jour avec succès !");
+            } else {
+                System.out.println("Aucun produit trouvé avec cet ID.");
+            }
+
+        } catch (SQLException e) {
+            System.err.println("Erreur lors de la mise à jour de la quantité : " + e.getMessage());
+        }
+    }
+    public static List<String[]> getListeVentes() {
+        List<String[]> ventes = new ArrayList<>();
+        String query = "SELECT mvtstock.dateHeureMvt, produit.libelleProduit, mvtstock.qteMvt, tarif.prixPdt, " +
+                       "(mvtstock.qteMvt * tarif.prixPdt) AS total, typepaiement.libelleTypePaiement, produit.quantitePrdt " +
+                       "FROM mvtstock " +
+                       "JOIN produit ON mvtstock.idPdt = produit.id " +
+                       "JOIN tarif ON produit.id = tarif.idPdt " +
+                       "JOIN typepaiement ON mvtstock.idTypePaiement = typepaiement.id " +
+                       "WHERE mvtstock.idTypeMvt = 1";  // 1 correspond aux ventes
+
+        try (Connection connection = getConnection();
+             PreparedStatement statement = connection.prepareStatement(query);
+             ResultSet resultSet = statement.executeQuery()) {
+
+            while (resultSet.next()) {
+                String date = resultSet.getString("dateHeureMvt");
+                String produit = resultSet.getString("libelleProduit");
+                String quantiteVendue = resultSet.getString("qteMvt");
+                String prixUnitaire = resultSet.getString("prixPdt");
+                String total = resultSet.getString("total");
+                String typePaiement = resultSet.getString("libelleTypePaiement");
+                String stockRestant = resultSet.getString("quantitePrdt");
+
+                ventes.add(new String[]{date, produit, quantiteVendue, prixUnitaire, total, typePaiement, stockRestant});
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return ventes;
     }
 }
 

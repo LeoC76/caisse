@@ -28,6 +28,7 @@ public class liste_produit extends JFrame {
     // Liste pour stocker les produits du panier
     private List<String[]> Panier = new ArrayList<>();
     private JLabel lblNewLabel;
+    private JButton btnGestion_1;
 
     public liste_produit() {
     	setTitle("AppliCaisse");
@@ -85,12 +86,24 @@ public class liste_produit extends JFrame {
                 btnGestion.setFont(new Font("Tahoma", Font.BOLD, 11));
                 btnGestion.addActionListener(new ActionListener() {
                 	public void actionPerformed(ActionEvent e) {
-                		Accueil test = new Accueil();
+                		AccueilGestion test = new AccueilGestion();
                 		test.afficher();
                 	}
                 });
-                btnGestion.setBackground(new Color(255, 128, 64));
+                btnGestion.setBackground(new Color(255, 255, 255));
                 contentPane.add(btnGestion);
+                
+                JButton btnListeVente = new JButton("Liste vente");
+                btnListeVente.addActionListener(new ActionListener() {
+                	public void actionPerformed(ActionEvent e) {
+                		ListeVente test = new ListeVente();
+                		test.afficher();
+                	}
+                });
+                btnListeVente.setFont(new Font("Tahoma", Font.BOLD, 11));
+                btnListeVente.setBackground(Color.WHITE);
+                btnListeVente.setBounds(1025, 10, 161, 64);
+                contentPane.add( btnListeVente);
     }
     
     private void remplirComboBox() {
@@ -116,16 +129,15 @@ public class liste_produit extends JFrame {
         try {
             if ("Tous".equals(selectedAction)) {
                 // Si "Tous" est sélectionné, afficher tous les produits
-                List<String> produits = Connexion.getProduits();
+                List<String[]> produits = Connexion.getProduits();
                 
-                for (int i = 0; i < produits.size(); i += 2) {
-                    String productName = produits.get(i);
-                    String productQT = produits.get(i+1);
+                for (String[] produit : produits) {
+                    String productName = produit[0];
+                    String productQT = produit[1];
                     String productPrice = String.valueOf(Connexion.getPrixProduit(productName)); // Récupérer le prix du produit
                     tableModel.addRow(new Object[]{productName, productQT, productPrice, "Ajouter"});  // Afficher le prix
                 }
             } else {
-            	System.out.println("Action sélectionnée : " + selectedAction);
                 // Récupérer les produits filtrés par l'action sélectionnée
                 List<String[]> produitsFiltres = Connexion.getProduitsParAction(selectedAction);
                 for (String[] produit : produitsFiltres) {
@@ -196,4 +208,8 @@ public class liste_produit extends JFrame {
         // Si le produit n'existe pas encore, l'ajouter au panier avec le prix
         Panier.add(new String[]{productName, String.valueOf(quantity), String.valueOf(prix)});
     }
+
+    public static void rafraichirListeProduits() {
+    	
+	}
 }
